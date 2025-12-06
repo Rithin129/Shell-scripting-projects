@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#small editing just to  add this comment. Because I am checking out git fork
 set -x
 
 # Store the AWS account ID in a variable
