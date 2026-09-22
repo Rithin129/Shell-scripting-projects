@@ -13,12 +13,12 @@ var counts = {};
 
 var ga = new GlideAggregate('incident');
 ga.addQuery('active', true);
-ga.addAggregate('COUNT', 'assignment_group');  // implies GROUP BY assignment_group
+ga.addAggregate('COUNT');          // COUNT(*)
+ga.groupBy('assignment_group');    // ... GROUP BY assignment_group
 ga.query();
 
 while (ga.next()) {
-    counts[ga.getValue('assignment_group')] = parseInt(
-        ga.getAggregate('COUNT', 'assignment_group'), 10);
+    counts[ga.getValue('assignment_group')] = parseInt(ga.getAggregate('COUNT'), 10);
 }
 ```
 
@@ -73,8 +73,11 @@ set is bounded by the number of groups.
 
 - Index the columns you filter and group on: `incident(active, assignment_group)`.
   Aggregation is only cheap if the database can satisfy it from an index.
-- `addAggregate('COUNT', field)` already groups by that field — a separate
-  `groupBy()` on the same field is redundant.
+- There are two equivalent forms, and **the getter must match the setter**:
+  `addAggregate('COUNT')` + `groupBy(field)` reads back with `getAggregate('COUNT')`,
+  while `addAggregate('COUNT', field)` (which groups by that field implicitly, so
+  no `groupBy` is needed) reads back with `getAggregate('COUNT', field)`. Crossing
+  them returns empty rather than an error — the classic hour-long debug.
 - `getAggregate()` returns a **string**; `parseInt` it before arithmetic or
   comparison.
 - Server-side `GlideAggregate` does not apply read ACLs (there is no
